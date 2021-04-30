@@ -1,0 +1,49 @@
+{
+    "argparse": {
+        "description": "Delete Informatica deployment groups that are older than {age_in_days}.",
+        "args": [
+            {
+                "name": "age_in_days",
+                "type": "int",
+                "help": "The maximum allowable age of a deployment group, in days.  Any deployment group that is older will be deleted."
+            }
+        ]
+    },
+    "sqlplus": {
+        "popen": [
+            "{e[ORACLE_HOME]}/bin/sqlplus",
+            "-s",
+            "{e[INFA_REPO_USR]}/{e[INFA_REPO_PWD]}@{e[ORACLE_SID]}.autodesk.com"
+        ],
+        "input": {
+            "set": [
+                "SET FEEDBACK OFF ",
+                "SET HEADING OFF ",
+                "SET LINESIZE 999 ",
+                "SET NEWPAGE NONE ",
+                "SET RECSEP EACH ",
+                ""
+            ],
+            "listobjects" : [
+                "SELECT DEP_GROUP_NAME || '|' || LAST_SAVED ",
+                "FROM REP_DEPLOY_GROUP ",
+                "WHERE TO_DATE(LAST_SAVED, 'MM/DD/YYYY HH24:MI:SS') < SYSDATE - {c[age_in_days]} ",
+                "ORDER BY TO_DATE(LAST_SAVED, 'MM/DD/YYYY HH24:MI:SS');"
+            ]
+        }
+    },
+    "pmrep": {
+        "path": "{e[INFA_HOME]}/server/bin",
+        "popen": [
+            "pmrep",
+            "deletedeploymentgroup",
+            "-p",
+            "{dg[name]}",
+            "-f"
+        ]
+    },
+    "prompts": {
+        "no_dgs": "Sorry, there are no deployment groups older than {0} days.",
+        "deleting": "Deleting deployment group {dg[name]} (last saved {dg[last_saved_date]})..."
+    }
+}
