@@ -1,2 +1,2 @@
 # dg-delete
-Informatica Deployment Group Deletion
+Delete Informatica deployment groups that are older than {age_in_days}.
